@@ -8,19 +8,26 @@ import dpkt
 from settings import *
 from util import *
 
+mal_packet = [0,0]
+nor_packet = [0,0]
 
-def getPayload(filename, outputName, mode=1):
+def getPayload(filename, outputName, data_label="malware", mode=1, set_label=0):
     """Get payload according to some constrains.
+    
     @parameter   filename: The pcap file you want to extract
                outputName: Write to this file
+               data_label: Indicate normal or malware connection
                      mode: The capture mode, 1 for http req
                                              2 for payloads
+                set_label: Indicate training set(0) or testing set(0)
     
     @returns: None
     """
 
+    global mal_packet, nor_packet
 
     ipcounter = 0
+    payloadcounter = 0
 
     outputFile = open(outputName, "a")
     pcapfile = dpkt.pcap.Reader(open(filename, "rb"))
@@ -46,6 +53,8 @@ def getPayload(filename, outputName, mode=1):
         if mode == 2:
             """ Get normal TCP payload """
             if len(tcp.data) > 0 and tcp.dport != 80:
+                payloadcounter += 1
+                
                 print "packet {}: {}".format(ipcounter, len(tcp.data))
                 outputFile.write(','.join(format(ord(x)) for x in tcp.data) + '\n')
 
@@ -71,7 +80,11 @@ def getPayload(filename, outputName, mode=1):
             # print "packet " + str(ipcounter) + " = " + str(len(tcp.data))
 
     outputFile.close()
-    print  "Total number of packets in the pcap file: ", ipcounter
+    print "Total number of packets in the pcap file: {}".format(ipcounter)
+    print "Extract: {}".format(payloadcounter)
+    
+    if data_label == "malware": mal_packet[catagory] += payloadcounter
+    else: nor_packet[catagory] += payloadcounter
 
 
 if __name__ == '__main__':
@@ -99,7 +112,7 @@ if __name__ == '__main__':
         for file in os.listdir(dirMalName[catagory]):
             filepath = os.path.join(dirMalName[catagory], file)
             if ".pcap" in file:
-                getPayload(filepath, inputMalName[catagory], mode)
+                getPayload(filepath, inputMalName[catagory], data_label="malware", mode=mode, set_label=catagory)
 
 
     trainFile.close()
@@ -116,8 +129,10 @@ if __name__ == '__main__':
         for file in os.listdir(dirNorName[catagory]):
             filepath = os.path.join(dirNorName[catagory], file)
             if ".pcap" in file:
-                getPayload(filepath, inputNorName[catagory], mode)
+                getPayload(filepath, inputNorName[catagory], data_label="normal", mode=mode, set_label=catagory)
 
+    print "Totally collect {},{} packets from malware connection".format(mal_packet[0],mal_packet[1])
+    print "Totally collect {},{} packets from normal connection".format(nor_packet[0],nor_packet[1])
 
     trainFile.close()
     testFile.close()
