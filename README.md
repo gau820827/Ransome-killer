@@ -40,6 +40,10 @@ python ./visual/show.py [pickle_file]
 This will show the structure of those payloads.
 
 ## Examples
+### Visualization on Cryptmic
+![Visualization on Cryptmic](https://github.com/gau820827/Ransome-killer/blob/master/graph/Cryptmic/CryptmicPCA.png "Visualization on Cryptmic")
+### Visualization on Cryptwall
+![Visualization on Cryptwall](https://github.com/gau820827/Ransome-killer/blob/master/graph/Cryptwall/cryptwall_pca.png "Visualization on Cryptwall")
 
 ## Training
 After PCA as pre-training, we could use those principle components to fit in different ML models.
